@@ -17,3 +17,13 @@ project start from 1.0.0
 ^ :  indicates if any minor or patch come update it automatically ...
 ~ : indicates if any patch come update it automatically ...
 '4.19.2' : indicates use only this specific version ...
+
+
+
+<!-- Route handler and Middleware -->
+
+- use() : if you are using for route it will handle all coming requests ( GET, POST, PUT, DELETE)
+
+
+
+<!--  -->
