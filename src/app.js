@@ -45,6 +45,25 @@ app.post('/signup', async (req, res) => {
   }
 })
 
+app.get('/feed', async (req, res) => {
+  try {
+    const users = await UserModel.find()
+    if (!users.length) {
+      res.send({
+        message: 'No user exists',
+        data: [],
+      })
+    }
+    res
+      .status(200)
+      .send({ message: 'User list fetched successfully', data: users })
+  } catch (error) {
+    res.status(400).send({
+      message: 'Error saving user!' + error,
+    })
+  }
+})
+
 app.listen(PORT, async () => {
   try {
     await connectDB()
