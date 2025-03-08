@@ -64,6 +64,54 @@ app.get('/feed', async (req, res) => {
   }
 })
 
+app.delete('/user', async (req, res) => {
+  try {
+    const userId = req.body.userId
+    const user = await UserModel.findByIdAndDelete({ _id: userId })
+
+    res.status(200).send({
+      message: 'User deleted successfully',
+      data: user._id,
+    })
+  } catch (error) {
+    res.status(400).send({
+      message: 'Error deleting user!' + error,
+    })
+  }
+})
+
+app.patch('/user', async (req, res) => {
+  try {
+    const userId = req.body.userId
+    const emailId = req.body.emailId
+    const data = req.body
+
+    /* ************** 
+		findByIdAndUpdate don't accept query it only take _id for searching so that is why,We must use the findOneAndUpdate.
+
+		Additionally passing option like returnDOcument which will return latest updated document . we can also pass before which will return previous document before update
+		************* */
+    const user = await UserModel.findOneAndUpdate(
+      {
+        $or: [{ _id: userId }, { emailId }],
+      },
+      data,
+      {
+        returnDocument: 'after',
+      }
+    )
+
+    res.status(200).send({
+      message: 'User deleted successfully',
+      data: user,
+    })
+  } catch (error) {
+    res.status(400).send({
+      message: 'Error updating user!' + error,
+    })
+  }
+})
+
 app.listen(PORT, async () => {
   try {
     await connectDB()
