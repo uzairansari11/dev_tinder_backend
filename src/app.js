@@ -80,10 +80,10 @@ app.delete('/user', async (req, res) => {
   }
 })
 
-app.patch('/user', async (req, res) => {
+app.patch('/user/:userId', async (req, res) => {
   try {
-    const userId = req.body.userId
-    const emailId = req.body.emailId
+    const userId = req.params?.userId
+
     const data = req.body
 
     /* ************** 
@@ -91,10 +91,24 @@ app.patch('/user', async (req, res) => {
 
 		Additionally passing option like returnDOcument which will return latest updated document . we can also pass before which will return previous document before update
 		************* */
+    const allowedUpdateFields = ['photoUrl', 'age', 'skills', 'about', 'gender']
+
+    const isFieldsProper = Object.keys(data).every((key) =>
+      allowedUpdateFields.includes(key)
+    )
+    console.log('userId', userId)
+    if (!isFieldsProper)
+      throw new Error('Some extra fields added which are not allowed.')
+    if (data?.skills?.length > 10) {
+      throw new Error('Upto 10 skills are allowed.')
+    }
+    let query = userId.includes('@') ? { email: userId } : { _id: userId }
+
     const user = await UserModel.findOneAndUpdate(
-      {
-        $or: [{ _id: userId }, { emailId }],
-      },
+      // {
+      //   $or: [{ _id: userId }, { email: userId }],
+      // },
+			query,
       data,
       {
         returnDocument: 'after',
