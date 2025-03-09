@@ -98,6 +98,7 @@ app.patch('/user', async (req, res) => {
       data,
       {
         returnDocument: 'after',
+        runValidators: true,
       }
     )
 
