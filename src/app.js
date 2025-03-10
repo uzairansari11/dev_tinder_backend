@@ -3,6 +3,8 @@ require('dotenv').config()
 const express = require('express')
 const { connectDB } = require('./config/database')
 const { UserModel } = require('./models/user-model')
+const { signupValidator } = require('./utils/validation')
+const bcrypt = require('bcrypt')
 
 /* Instance of express js application */
 const app = express()
@@ -24,8 +26,16 @@ app.use(express.json({ limit: '1mb' }))
 app.post('/signup', async (req, res) => {
   try {
     /* ********** Create an instance of UserModel ******** */
+    signupValidator(req)
 
-    const user = new UserModel(req.body)
+    const { firstName, lastName, email, password } = req.body
+    const hashedPassword = await bcrypt.hash(password, process.env.SALT_ROUND)
+    const user = new UserModel({
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+    })
 
     /* ************* Saving this instance to database & it will return an promise  ************* */
 
@@ -40,11 +50,34 @@ app.post('/signup', async (req, res) => {
     })
   } catch (error) {
     res.status(400).send({
-      message: 'Error saving user!' + error,
+      message: error.message,
     })
   }
 })
 
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body
+
+    if (!validator.isEmail(email)) throw new Error('Invalid credentials')
+
+    const user = UserModel.findOne({ email })
+    if (!user) throw new Error('Invalid credentials')
+
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+
+    if (isPasswordValid) throw new Error('Invalid credentials')
+
+    res.status(200).send({
+      data: 'Hello',
+      message: 'Login successful!!',
+    })
+  } catch (error) {
+    res.status(400).send({
+      message: error,
+    })
+  }
+})
 app.get('/feed', async (req, res) => {
   try {
     const users = await UserModel.find()
@@ -108,7 +141,7 @@ app.patch('/user/:userId', async (req, res) => {
       // {
       //   $or: [{ _id: userId }, { email: userId }],
       // },
-			query,
+      query,
       data,
       {
         returnDocument: 'after',

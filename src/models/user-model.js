@@ -12,8 +12,8 @@ const userSchema = new mongoose.Schema(
       minLength: 2,
       unique: true,
       validate(value) {
-        if (validator.isEmail(value)) {
-          throw new Error('Email address in not valid', +value)
+        if (!validator.isEmail(value)) {
+          throw new Error('Email address in not valid')
         }
       },
     },
@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       /* The validation only run during insertion if you want it to run on update also you need to enable it inside your route update logic */
       validate(value) {
-        if (!['male,female,"other'].includes(value)) {
+        if (!['male','female','other'].includes(value)) {
           throw new Error('Gender is not valid')
         }
       },
