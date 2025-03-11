@@ -1,5 +1,8 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+
 const userSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true },
@@ -29,7 +32,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       /* The validation only run during insertion if you want it to run on update also you need to enable it inside your route update logic */
       validate(value) {
-        if (!['male','female','other'].includes(value)) {
+        if (!['male', 'female', 'other'].includes(value)) {
           throw new Error('Gender is not valid')
         }
       },
@@ -65,7 +68,22 @@ const userSchema = new mongoose.Schema(
 	 and this tracks when document was create and last updated *********  */
   { timestamps: true }
 )
+userSchema.methods.getJWT = async function () {
+  const user = this
 
+  const token = await jwt.sign({ _id: user?._id }, process.env.JWT_SECRET_KEY)
+  return token
+}
+
+userSchema.methods.isPasswordValid = async function (userInputPassword) {
+  const user = this
+  const hashedPassword = user.password
+  const isPasswordValid = await bcrypt.compare(
+    userInputPassword,
+    hashedPassword
+  )
+  return isPasswordValid
+}
 const UserModel = mongoose.model('User', userSchema)
 
 module.exports = { UserModel }
