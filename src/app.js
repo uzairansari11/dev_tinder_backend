@@ -6,7 +6,9 @@ const { UserModel } = require('./models/user-model')
 const { signupValidator } = require('./utils/validation')
 const { authMiddleware } = require('./middleware/auth-middleware')
 const cookieParser = require('cookie-parser')
+
 const validator = require('validator')
+const { config } = require('./config/config')
 /* Instance of express js application */
 const app = express()
 
@@ -79,7 +81,7 @@ app.post('/login', async (req, res) => {
     const token = await user.getJWT()
     /* *********  sending cookies to client also use cookie-parser library to parse it . A middleware developed by express js team ************* */
 
-    res.cookie('token', token)
+    res.cookie('token', token, config.cookieOptions)
     res.status(200).send({
       data: 'Hello',
       message: 'Login successful!!',
