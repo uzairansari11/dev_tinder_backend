@@ -23,12 +23,11 @@ connectRequestRouter.post(
       if (!isStatusAllowed)
         throw new Error('Request not allowed bad status ' + status);
 
-      const isDestinationUserIdExists = await UserModel.findById(
-        destinationUserId,
-      );
+      const isDestinationUserIdExists =
+        await UserModel.findById(destinationUserId);
       if (!isDestinationUserIdExists)
         throw new Error(
-          'The user does not exist whom you are trying to send the request.',
+          'The user does not exist whom you are trying to send the request.'
         );
 
       const isRequestAlreadyExists = await ConnectionRequestModel.findOne({
@@ -46,15 +45,13 @@ connectRequestRouter.post(
         status,
       });
       await connection.save();
-      res.send({
-        message: 'Request send successfully',
-      });
+      sendSuccess(res, null, 'Request send successfully');
     } catch (error) {
       res.status(400).send({
         message: error.message,
       });
     }
-  },
+  }
 );
 
 connectRequestRouter.patch(
@@ -81,14 +78,13 @@ connectRequestRouter.patch(
 
       connectionRequest.status = status;
       const data = await connectionRequest.save();
-      res.status(200).send({ message: 'Connection' + status, data });
+      sendSuccess(res, data, `Request ${status}`);
     } catch (error) {
-      console.log('error while reviewing connection', error.message);
       res.status(400).send({
         message: error.message,
       });
     }
-  },
+  }
 );
 
 module.exports = { connectRequestRouter };

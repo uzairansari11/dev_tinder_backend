@@ -13,10 +13,10 @@ userRouter.get('/requests/received', authMiddleware, async (req, res) => {
     const loggedInUser = req.user;
     const loggedInUserId = loggedInUser._id;
 
-    const requests = await ConnectionRequestModel.find({
+    const data = await ConnectionRequestModel.find({
       $and: [{ toUserId: loggedInUserId }, { status: 'interested' }],
     }).populate('fromUserId', FROM_USER_DATA_POPULATE);
-    sendSuccess(res, requests);
+    sendSuccess(res, data);
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
