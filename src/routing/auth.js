@@ -1,15 +1,14 @@
 const express = require('express');
 const { signupValidator } = require('../utils/validation');
 const { UserModel } = require('../models/user-model');
-const bcrypt = require('bcrypt');
 const authRouter = express.Router();
 const validator = require('validator');
 const { config } = require('../config/config');
 const { sendSuccess } = require('../utils/api-response-error');
-
-authRouter.post('/signup', async (req, res) => {
-  try {
-    /* ********** Create an instance of UserModel ******** */
+const { asyncHandler } = require('../utils/async-handler');
+authRouter.post(
+  '/signup',
+  asyncHandler(async (req, res) => {
     signupValidator(req);
 
     const { firstName, lastName, email, password, gender } = req.body;
@@ -28,14 +27,11 @@ authRouter.post('/signup', async (req, res) => {
     /* ************* Sending response to client  ************* */
 
     sendSuccess(res, null, 'Account created successfully');
-  } catch (error) {
-    res.status(400).send({
-      message: error.message,
-    });
-  }
-});
-authRouter.post('/login', async (req, res) => {
-  try {
+  })
+);
+authRouter.post(
+  '/login',
+  asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     if (!validator.isEmail(email)) throw new Error('Invalid credentials');
@@ -54,11 +50,6 @@ authRouter.post('/login', async (req, res) => {
 
     res.cookie('token', token, config.cookieOptions);
     sendSuccess(res, null, 'Login successful!!');
-  } catch (error) {
-    console.log('error is here', error);
-    res.status(400).send({
-      message: error.message,
-    });
-  }
-});
+  })
+);
 module.exports = { authRouter };

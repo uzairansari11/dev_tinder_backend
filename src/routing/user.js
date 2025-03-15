@@ -5,11 +5,15 @@ const {
 } = require('../models/connection-request-model');
 const { UserModel } = require('../models/user-model');
 const { sendSuccess } = require('../utils/api-response-error');
+const { asyncHandler } = require('../utils/async-handler');
 
 const userRouter = express.Router();
 const FROM_USER_DATA_POPULATE = 'firstName lastName age photoUrl about skills';
-userRouter.get('/requests/received', authMiddleware, async (req, res) => {
-  try {
+/* ******** Received Request with async handler wrapper ******* */
+userRouter.get(
+  '/requests/received',
+  authMiddleware,
+  asyncHandler(async (req, res) => {
     const loggedInUser = req.user;
     const loggedInUserId = loggedInUser._id;
 
@@ -17,12 +21,15 @@ userRouter.get('/requests/received', authMiddleware, async (req, res) => {
       $and: [{ toUserId: loggedInUserId }, { status: 'interested' }],
     }).populate('fromUserId', FROM_USER_DATA_POPULATE);
     sendSuccess(res, data);
-  } catch (error) {
-    res.status(400).send({ message: error.message });
-  }
-});
-userRouter.get('/connections', authMiddleware, async (req, res) => {
-  try {
+  })
+);
+
+/* ******** Connection with async handler wrapper ******* */
+
+userRouter.get(
+  '/connections',
+  authMiddleware,
+  asyncHandler(async (req, res) => {
     const loggedInUser = req.user;
     const loggedInUserId = loggedInUser._id;
 
@@ -42,12 +49,15 @@ userRouter.get('/connections', authMiddleware, async (req, res) => {
       return connection.fromUserId;
     });
     sendSuccess(res, data);
-  } catch (error) {
-    res.status(400).send({ message: error.message });
-  }
-});
-userRouter.get('/feed', authMiddleware, async (req, res) => {
-  try {
+  })
+);
+
+/* ******** Feeds  with async handler wrapper ******* */
+
+userRouter.get(
+  '/feed',
+  authMiddleware,
+  asyncHandler(async (req, res) => {
     /* *********** Validation for page and limit ************** */
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 30);
@@ -55,12 +65,12 @@ userRouter.get('/feed', authMiddleware, async (req, res) => {
     /* *************************************************** */
 
     /* ***********
-    1- user must not see self
-    2- people whom user already sent request or people who sent request to user
-    3- people whom user ignored or interested
-    4- people who is already in connection list
-    5- people who rejected user or vice-versa
-    ********* */
+  1- user must not see self
+  2- people whom user already sent request or people who sent request to user
+  3- people whom user ignored or interested
+  4- people who is already in connection list
+  5- people who rejected user or vice-versa
+  ********* */
 
     const loggedInUser = req.user;
     const loggedInUserId = loggedInUser._id;
@@ -85,8 +95,6 @@ userRouter.get('/feed', authMiddleware, async (req, res) => {
       .limit(limit)
       .select(FROM_USER_DATA_POPULATE);
     sendSuccess(res, users);
-  } catch (error) {
-    res.status(400).send({ message: error.message });
-  }
-});
+  })
+);
 module.exports = { userRouter };

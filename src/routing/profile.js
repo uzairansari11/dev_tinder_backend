@@ -4,22 +4,24 @@ const {
   validatePasswordEditData,
   validateEditProfileData,
 } = require('../utils/validation');
+const { sendSuccess } = require('../utils/api-response-error');
+const { asyncHandler } = require('../utils/async-handler');
 
 const profileRouter = express.Router();
 
-profileRouter.get('/view', authMiddleware, async (req, res) => {
-  try {
+profileRouter.get(
+  '/view',
+  authMiddleware,
+  asyncHandler(async (req, res) => {
     const data = req.user;
     sendSuccess(res, data);
-  } catch (error) {
-    res.status(400).send({
-      message: error.message,
-    });
-  }
-});
+  })
+);
 
-profileRouter.patch('/edit', authMiddleware, async (req, res) => {
-  try {
+profileRouter.patch(
+  '/edit',
+  authMiddleware,
+  asyncHandler(async (req, res) => {
     if (!validateEditProfileData(req)) {
       throw new Error('Invalid edit request');
     }
@@ -29,14 +31,12 @@ profileRouter.patch('/edit', authMiddleware, async (req, res) => {
 
     await loggedInUser.save();
     sendSuccess(res, loggedInUser, 'Profile updated successfully');
-  } catch (error) {
-    res.status(400).send({
-      message: error.message,
-    });
-  }
-});
-profileRouter.patch('/password', authMiddleware, async (req, res) => {
-  try {
+  })
+);
+profileRouter.patch(
+  '/password',
+  authMiddleware,
+  asyncHandler(async (req, res) => {
     if (!validatePasswordEditData(req)) {
       throw new Error('Invalid request');
     }
@@ -46,10 +46,6 @@ profileRouter.patch('/password', authMiddleware, async (req, res) => {
     await loggedInUser.save();
 
     sendSuccess(res, loggedInUser, 'Password updated');
-  } catch (error) {
-    res.status(400).send({
-      message: error.message,
-    });
-  }
-});
+  })
+);
 module.exports = { profileRouter };
