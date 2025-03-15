@@ -106,6 +106,7 @@ userSchema.methods.isPasswordValid = async function (userInputPassword) {
     userInputPassword,
     hashedPassword,
   );
+  console.log("isPassword",isPasswordValid)
   return isPasswordValid;
 };
 const UserModel = mongoose.model('User', userSchema);

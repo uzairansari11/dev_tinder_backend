@@ -5,12 +5,14 @@ const {
   ConnectionRequestModel,
 } = require('../models/connection-request-model');
 const { asyncHandler } = require('../utils/async-handler');
+const { sendSuccess } = require('../utils/api-response-error');
+const { NotFoundError, BadRequestError } = require('../utils/error');
 const connectRequestRouter = express.Router();
 
 connectRequestRouter.post(
   '/request/send/:status/:userId',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req, res, next) => {
     const loggedInUser = req.user;
     const loggedInUserId = req.user._id;
     const status = req.params.status;
@@ -20,14 +22,15 @@ connectRequestRouter.post(
 
     const isStatusAllowed = allowedStatus.includes(status);
 
-    if (!isStatusAllowed)
-      throw new Error('Request not allowed bad status ' + status);
+    if (!isStatusAllowed) return next(new BadRequestError('Invalid Status'));
 
     const isDestinationUserIdExists =
       await UserModel.findById(destinationUserId);
     if (!isDestinationUserIdExists)
-      throw new Error(
-        'The user does not exist whom you are trying to send the request.'
+      return next(
+        new NotFoundError(
+          'The user does not exist whom you are trying to send the request.'
+        )
       );
 
     const isRequestAlreadyExists = await ConnectionRequestModel.findOne({
@@ -37,7 +40,8 @@ connectRequestRouter.post(
       ],
     });
 
-    if (isRequestAlreadyExists) throw new Error('Request already sent.');
+    if (isRequestAlreadyExists)
+      return next(new BadRequestError('Request already sent.'));
 
     const connection = new ConnectionRequestModel({
       fromUserId: loggedInUserId,
@@ -52,7 +56,7 @@ connectRequestRouter.post(
 connectRequestRouter.patch(
   '/request/review/:status/:requestId',
   authMiddleware,
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req, res, next) => {
     const loggedInUser = req.user;
     const loggedInUserId = loggedInUser._id;
     const { status, requestId } = req.params;
@@ -60,7 +64,8 @@ connectRequestRouter.patch(
     /* ********** check status ********** */
     const allowedStatus = ['accepted', 'rejected'];
 
-    if (!allowedStatus.includes(status)) throw new Error('Status not valid');
+    if (!allowedStatus.includes(status))
+      return next(new BadRequestError('Status not valid'));
 
     const connectionRequest = await ConnectionRequestModel.findOne({
       _id: requestId,
@@ -68,7 +73,7 @@ connectRequestRouter.patch(
       status: 'interested',
     });
 
-    if (!connectionRequest) throw new Error('Invalid Request');
+    if (!connectionRequest) return next(new BadRequestError('Invalid Request'));
 
     connectionRequest.status = status;
     const data = await connectionRequest.save();
