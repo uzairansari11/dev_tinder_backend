@@ -41,6 +41,7 @@ const errorHandler = (err, req, res, next) => {
 
   // Send error response
   const statusCode = error.statusCode || 500;
+  
   const message = error.isOperational
     ? error.message
     : process.env.NODE_ENV === 'production'

@@ -6,6 +6,7 @@ const validator = require('validator');
 const { config } = require('../config/config');
 const { sendSuccess } = require('../utils/api-response-error');
 const { asyncHandler } = require('../utils/async-handler');
+const { BadRequestError } = require('../utils/error');
 authRouter.post(
   '/signup',
   asyncHandler(async (req, res) => {
@@ -31,18 +32,18 @@ authRouter.post(
 );
 authRouter.post(
   '/login',
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
 
-    if (!validator.isEmail(email)) throw new Error('Invalid credentials');
+    if (!validator.isEmail(email)) return next(new Error('Invalid credentials'));
     console.log('post login api');
 
     const user = await UserModel.findOne({ email });
-    if (!user) throw new Error('Invalid credentials');
+    if (!user) return next(new BadRequestError('Invalid credentials'));
     console.log('user password', password, 'db saved password', user.password);
     const isPasswordValid = await user.isPasswordValid(password);
 
-    if (!isPasswordValid) throw new Error('Invalid credentials');
+    if (!isPasswordValid) return  next(new BadRequestError('Invalid credentials'));
 
     /* *************  Generating jwt token  ************************** */
     const token = await user.getJWT();
