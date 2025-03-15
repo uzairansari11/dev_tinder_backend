@@ -4,6 +4,7 @@ const {
   ConnectionRequestModel,
 } = require('../models/connection-request-model');
 const { UserModel } = require('../models/user-model');
+const { sendSuccess } = require('../utils/api-response-error');
 
 const userRouter = express.Router();
 const FROM_USER_DATA_POPULATE = 'firstName lastName age photoUrl about skills';
@@ -15,10 +16,7 @@ userRouter.get('/requests/received', authMiddleware, async (req, res) => {
     const requests = await ConnectionRequestModel.find({
       $and: [{ toUserId: loggedInUserId }, { status: 'interested' }],
     }).populate('fromUserId', FROM_USER_DATA_POPULATE);
-
-    res
-      .status(200)
-      .json({ message: 'Request fetch successfully', data: requests });
+    sendSuccess(res, requests);
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -37,14 +35,13 @@ userRouter.get('/connections', authMiddleware, async (req, res) => {
       .populate('fromUserId', FROM_USER_DATA_POPULATE)
       .populate('toUserId', FROM_USER_DATA_POPULATE);
 
-    const data = connections.map((connection) => {
+    const data = connections.map(connection => {
       if (connection.fromUserId._id.toString() === loggedInUserId.toString()) {
         return connection.toUserId;
       }
       return connection.fromUserId;
     });
-
-    res.status(200).send({ message: 'Connection fetched successfully', data });
+    sendSuccess(res, data);
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
@@ -54,7 +51,7 @@ userRouter.get('/feed', authMiddleware, async (req, res) => {
     /* *********** Validation for page and limit ************** */
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 30);
-    const skip=(page-1)*limit
+    const skip = (page - 1) * limit;
     /* *************************************************** */
 
     /* ***********
@@ -75,7 +72,7 @@ userRouter.get('/feed', authMiddleware, async (req, res) => {
     const uniqueIds = new Set();
     uniqueIds.add(loggedInUserId.toString());
 
-    connections.forEach((connection) => {
+    connections.forEach(connection => {
       uniqueIds.add(connection.fromUserId.toString());
     });
 
@@ -83,8 +80,11 @@ userRouter.get('/feed', authMiddleware, async (req, res) => {
 
     const users = await UserModel.find({
       _id: { $nin: Array.from(uniqueIds) },
-    }).skip(skip).limit(limit).select(FROM_USER_DATA_POPULATE);
-    res.status(200).send({ message: 'Feed fetched successfully', data: users });
+    })
+      .skip(skip)
+      .limit(limit)
+      .select(FROM_USER_DATA_POPULATE);
+    sendSuccess(res, users);
   } catch (error) {
     res.status(400).send({ message: error.message });
   }

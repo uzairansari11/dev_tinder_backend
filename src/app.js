@@ -7,6 +7,8 @@ const { authRouter } = require('./routing/auth');
 const { profileRouter } = require('./routing/profile');
 const { connectRequestRouter } = require('./routing/connection-request');
 const { userRouter } = require('./routing/user');
+const { AppError, NotFoundError } = require('./utils/error');
+const { errorHandler } = require('./middleware/error-handler-middleware');
 /* Instance of express js application */
 const app = express();
 
@@ -32,6 +34,20 @@ app.use('/auth', authRouter);
 app.use('/profile', profileRouter);
 app.use('/connection', connectRequestRouter);
 app.use('/user', userRouter);
+
+/* ***************** Handling Not Found Routes**************** */
+
+app.all('*', (req, _res, next) => {
+  next(NotFoundError(`Can't find ${req.originalUrl} on the server`));
+});
+
+/* **************************** */
+
+/* *********Global Error Handler ************* */
+
+app.use(errorHandler);
+
+/* **************************** */
 
 app.listen(PORT, async () => {
   try {
