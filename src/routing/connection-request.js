@@ -71,7 +71,7 @@ connectRequestRouter.patch(
 
       if (!allowedStatus.includes(status)) throw new Error('Status not valid');
 
-      const connectionRequest = ConnectionRequestModel.findOne({
+      const connectionRequest = await ConnectionRequestModel.findOne({
         _id: requestId,
         toUserId: loggedInUserId,
         status: 'interested',
@@ -83,6 +83,7 @@ connectRequestRouter.patch(
       const data = await connectionRequest.save();
       res.status(200).send({ message: 'Connection' + status, data });
     } catch (error) {
+      console.log('error while reviewing connection', error.message);
       res.status(400).send({
         message: error.message,
       });

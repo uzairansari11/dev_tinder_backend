@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const { authRouter } = require('./routing/auth');
 const { profileRouter } = require('./routing/profile');
 const { connectRequestRouter } = require('./routing/connection-request');
+const { userRouter } = require('./routing/user');
 /* Instance of express js application */
 const app = express();
 
@@ -27,9 +28,10 @@ app.use(cookieParser());
 
 /* ******************************************* */
 
-app.use('/', authRouter);
-app.use('/', profileRouter);
-app.use('/', connectRequestRouter);
+app.use('/auth', authRouter);
+app.use('/profile', profileRouter);
+app.use('/connection', connectRequestRouter);
+app.use('/user', userRouter);
 
 app.listen(PORT, async () => {
   try {

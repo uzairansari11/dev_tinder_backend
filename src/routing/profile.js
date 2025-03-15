@@ -1,10 +1,10 @@
 const express = require('express');
 const { authMiddleware } = require('../middleware/auth-middleware');
-const { validatePasswordEditData } = require('../utils/validation');
+const { validatePasswordEditData, validateEditProfileData } = require('../utils/validation');
 
 const profileRouter = express.Router();
 
-profileRouter.get('/profile/view', authMiddleware, async (req, res) => {
+profileRouter.get('/view', authMiddleware, async (req, res) => {
   try {
     const user = req.user;
     res.send({
@@ -18,7 +18,7 @@ profileRouter.get('/profile/view', authMiddleware, async (req, res) => {
   }
 });
 
-profileRouter.patch('/profile/edit', authMiddleware, async (req, res) => {
+profileRouter.patch('/edit', authMiddleware, async (req, res) => {
   try {
     if (!validateEditProfileData(req)) {
       throw new Error('Invalid edit request');
@@ -38,7 +38,7 @@ profileRouter.patch('/profile/edit', authMiddleware, async (req, res) => {
     });
   }
 });
-profileRouter.patch('/profile/password', authMiddleware, async (req, res) => {
+profileRouter.patch('/password', authMiddleware, async (req, res) => {
   try {
     if (!validatePasswordEditData(req)) {
       throw new Error('Invalid request');
