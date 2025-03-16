@@ -18,6 +18,11 @@ const handleDuplicateKeyError = err => {
   );
 };
 
+// Handle mongoose casting error
+const handleCastingError = err => {
+  const message = `Invalid value for field  ${err.path} : ${err.value}`;
+  return new AppError(message, 400);
+};
 // Handle JWT errors
 const handleJWTError = () =>
   new AppError('Invalid token. Please log in again.', 401);
@@ -38,10 +43,11 @@ const errorHandler = (err, req, res, next) => {
   if (err.code === 11000) error = handleDuplicateKeyError(err);
   if (err.name === 'JsonWebTokenError') error = handleJWTError();
   if (err.name === 'TokenExpiredError') error = handleJWTExpiredError();
+  if (err.name === 'CastError') error = handleCastingError(err);
 
   // Send error response
   const statusCode = error.statusCode || 500;
-  
+
   const message = error.isOperational
     ? error.message
     : process.env.NODE_ENV === 'production'

@@ -37,7 +37,7 @@ app.use('/user', userRouter);
 
 /* ***************** Handling Not Found Routes**************** */
 
-app.all('*', (req, _res, next) => {
+app.all('*', (req, _res, next) => {  
   next(new NotFoundError(`Can't find ${req.originalUrl} on the server`));
 });
 
