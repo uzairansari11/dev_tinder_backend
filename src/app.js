@@ -9,6 +9,25 @@ const { connectRequestRouter } = require('./routing/connection-request');
 const { userRouter } = require('./routing/user');
 const { AppError, NotFoundError } = require('./utils/error');
 const { errorHandler } = require('./middleware/error-handler-middleware');
+
+let server;
+/* **************************** */
+process.on('uncaughtException', error => {
+  console.log(`${error.name} - ${error.message}`);
+  console.log('Shutting down server due to uncaughtException');
+
+  if (server) {
+    // Only try to close if server exists
+    server.close(() => {
+      process.exit(1);
+    });
+  } else {
+    // Server wasn't initialized yet
+    process.exit(1);
+  }
+});
+/* ******************************** */
+
 /* Instance of express js application */
 const app = express();
 
@@ -37,7 +56,7 @@ app.use('/user', userRouter);
 
 /* ***************** Handling Not Found Routes**************** */
 
-app.all('*', (req, _res, next) => {  
+app.all('*', (req, _res, next) => {
   next(new NotFoundError(`Can't find ${req.originalUrl} on the server`));
 });
 
@@ -49,11 +68,30 @@ app.use(errorHandler);
 
 /* **************************** */
 
-app.listen(PORT, async () => {
+server = app.listen(PORT, async () => {
   try {
     await connectDB();
     console.log(`Server is running on port ${PORT}`);
   } catch (error) {
     console.log(error);
   }
+});
+
+process.on('unhandledRejection', error => {
+  console.log(`${error.name} - ${error.message}`);
+
+  console.log('Shutting down server due to unhandledPromiseRejection');
+
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(1);
+  });
+});
+
+/* *********** Memory Usage ************** */
+process.on('memoryUsage', () => {
+  const used = process.memoryUsage();
+  console.log(
+    `Memory usage: RSS: ${Math.round(used.rss / 1024 / 1024)}MB, Heap: ${Math.round(used.heapUsed / 1024 / 1024)}/${Math.round(used.heapTotal / 1024 / 1024)}MB`
+  );
 });
