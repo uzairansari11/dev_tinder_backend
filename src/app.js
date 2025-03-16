@@ -9,7 +9,7 @@ const { connectRequestRouter } = require('./routing/connection-request');
 const { userRouter } = require('./routing/user');
 const { AppError, NotFoundError } = require('./utils/error');
 const { errorHandler } = require('./middleware/error-handler-middleware');
-
+const cors = require('cors');
 let server;
 /* **************************** */
 process.on('uncaughtException', error => {
@@ -34,7 +34,7 @@ const app = express();
 const PORT = process.env.PORT_NUMBER || 8080;
 
 /* ***********************GLOBAL MIDDLEWARES********************** */
-
+app.use(cors());
 /*  *****************
 1- JSON MIDDLEWARE
 
