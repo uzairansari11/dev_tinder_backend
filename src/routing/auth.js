@@ -35,7 +35,8 @@ authRouter.post(
   asyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
 
-    if (!validator.isEmail(email)) return next(new Error('Invalid credentials'));
+    if (!validator.isEmail(email))
+      return next(new Error('Invalid credentials'));
     console.log('post login api');
 
     const user = await UserModel.findOne({ email });
@@ -43,14 +44,18 @@ authRouter.post(
     console.log('user password', password, 'db saved password', user.password);
     const isPasswordValid = await user.isPasswordValid(password);
 
-    if (!isPasswordValid) return  next(new BadRequestError('Invalid credentials'));
+    if (!isPasswordValid)
+      return next(new BadRequestError('Invalid credentials'));
 
     /* *************  Generating jwt token  ************************** */
     const token = await user.getJWT();
     /* *********  sending cookies to client also use cookie-parser library to parse it . A middleware developed by express js team ************* */
-
+    // After validation, fetch user data again with only the fields you want to return
+    const data = await UserModel.findById(user._id).select(
+      'firstName lastName photoUrl gender'
+    );
     res.cookie('token', token, config.cookieOptions);
-    sendSuccess(res, null, 'Login successful!!');
+    sendSuccess(res, data, 'Login successful!!');
   })
 );
 module.exports = { authRouter };

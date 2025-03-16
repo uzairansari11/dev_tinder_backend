@@ -34,7 +34,12 @@ const app = express();
 const PORT = process.env.PORT_NUMBER || 8080;
 
 /* ***********************GLOBAL MIDDLEWARES********************** */
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT,
+    credentials: true,
+  })
+);
 /*  *****************
 1- JSON MIDDLEWARE
 
