@@ -25,5 +25,5 @@ const accessMiddleware = (...roles) => {
     next();
   };
 };
-
+   
 module.exports = { accessMiddleware };
